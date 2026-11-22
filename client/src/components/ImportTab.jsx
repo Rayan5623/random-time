@@ -1,9 +1,11 @@
-import { useState, useRef } from 'react';
-import axios from 'axios';
+import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../LangContext';
+import { extractTitles, ALLOWED_IMAGE_TYPES } from '../api';
+import { parseFilmsCSV, MAX_CSV_BYTES } from '../csv';
 
-export default function ImportTab({ api, onImport }) {
+export default function ImportTab({ addMany, onImported }) {
   const { t } = useLang();
+  const errorText = (err) => t.errors[err?.code] || t.errors.ERR_UNKNOWN;
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,54 +15,46 @@ export default function ImportTab({ api, onImport }) {
   const imgRef = useRef();
   const csvRef = useRef();
 
+  // libera l'object URL precedente quando cambia l'anteprima o il componente viene smontato
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
   const handleFile = (e) => {
     const f = e.target.files[0];
+    e.target.value = ''; // permette di riselezionare lo stesso file
     if (!f) return;
     setFile(f);
-    setPreview(prev => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(f);
-    });
+    setPreview(URL.createObjectURL(f));
     setResults([]); setSelected([]); setError('');
   };
 
   const handleExtract = async () => {
     setLoading(true); setError('');
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await axios.post(`${api}/api/extract`, formData);
-      setResults(res.data.films);
-      setSelected(res.data.films.map((_, i) => i));
+      const films = await extractTitles(file);
+      setResults(films);
+      setSelected(films.map((_, i) => i));
     } catch (err) {
-      setError('Errore estrazione: ' + (err.response?.data?.error || err.message));
+      setError(errorText(err));
     } finally { setLoading(false); }
   };
 
-  const handleImport = async () => {
+  const handleImport = () => {
     const toImport = results.filter((_, i) => selected.includes(i));
     if (!toImport.length) return;
-    setError('');
-    try {
-      const res = await axios.post(`${api}/api/films/bulk`, { films: toImport });
-      onImport(res.data);
-    } catch (err) {
-      setError('Errore import: ' + (err.response?.data?.error || err.message));
-    }
+    addMany(toImport);
+    onImported();
   };
 
   const handleCSV = async (e) => {
     const f = e.target.files[0];
+    e.target.value = ''; // permette di ricaricare lo stesso file
     if (!f) return;
-    const formData = new FormData();
-    formData.append('file', f);
-    try {
-      const res = await axios.post(`${api}/api/import/csv`, formData);
-      alert(`Importati ${res.data.imported} titoli!`);
-      onImport(res.data.films);
-    } catch (err) {
-      alert('Errore CSV: ' + err.message);
-    }
+    if (f.size > MAX_CSV_BYTES) return alert(t.errors.ERR_FILE_TOO_LARGE);
+    const rows = parseFilmsCSV(await f.text());
+    if (!rows.length) return alert(t.errors.ERR_CSV_EMPTY);
+    const added = addMany(rows);
+    alert(`${added} ${t.import.csvImported}`);
+    onImported();
   };
 
   const toggleSelect = (i) =>
@@ -85,7 +79,7 @@ export default function ImportTab({ api, onImport }) {
           padding: preview ? 8 : 40, textAlign: 'center', cursor: 'pointer',
           background: 'var(--surface)', transition: 'border-color 0.2s'
         }}>
-          <input ref={imgRef} type="file" accept="image/*"
+          <input ref={imgRef} type="file" accept={ALLOWED_IMAGE_TYPES.join(',')}
             onChange={handleFile} style={{ display: 'none' }} />
           {preview
             ? <img src={preview} alt="preview" style={{ maxWidth: '100%', maxHeight: 280, borderRadius: 6 }} />

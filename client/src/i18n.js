@@ -1,7 +1,7 @@
 export const translations = {
   it: {
     title: 'RandomTime',
-    subtitle: "L'amico che non ti dice mai 'boh, scegli tu'.",    
+    subtitle: "L'amico che non ti dice mai 'boh, scegli tu'.",
     tabs: ['📥 Importa', '🎬 Lista', '🎲 Scegli'],
     import: {
       screenshotTitle: '📷 Da screenshot TvTime',
@@ -15,6 +15,7 @@ export const translations = {
       csvTitle: '📄 Da file CSV',
       csvHint: 'Il CSV deve avere header:',
       csvBtn: '📂 Carica CSV',
+      csvImported: 'titoli importati!',
     },
     list: {
       titlePlaceholder: 'Titolo...',
@@ -26,7 +27,7 @@ export const translations = {
       watched: 'Già visti',
       allTypes: '🎬📺 Tutti',
       onlyFilms: '🎬 Film',
-      onlySeries: '🎬 Serie',
+      onlySeries: '📺 Serie',
       newest: 'Più recenti',
       oldest: 'Più vecchi',
       titles: 'titoli',
@@ -37,6 +38,7 @@ export const translations = {
       total: 'Totale',
       toWatch: 'Da vedere',
       seen: 'Visti',
+      added: 'aggiunto!',
     },
     random: {
       allTypes: '🎬📺 Film e Serie',
@@ -54,6 +56,22 @@ export const translations = {
       retry: 'Riprova',
     },
     coffee: 'Ti è utile? Offrimi un caffè ☕',
+    errors: {
+      ERR_EMPTY_INPUT: 'Nessuna immagine caricata.',
+      ERR_INVALID_FILE: 'Formato non supportato: usa JPG, PNG, GIF o WebP.',
+      ERR_FILE_TOO_LARGE: 'File troppo grande.',
+      ERR_INVALID_INPUT: 'Richiesta non valida.',
+      ERR_RATE_LIMIT: 'Troppe richieste, rallenta!',
+      ERR_DAILY_LIMIT: 'Hai raggiunto il limite giornaliero di import AI gratuiti. Riprova domani!',
+      ERR_AI_BUSY: 'Servizio AI sovraccarico, riprova tra poco.',
+      ERR_AI_FAILED: "Errore durante l'estrazione, riprova.",
+      ERR_NOT_FOUND: 'Risorsa non trovata.',
+      ERR_INTERNAL: 'Errore interno del server.',
+      ERR_NETWORK: 'Server non raggiungibile, controlla la connessione.',
+      ERR_DUPLICATE: 'Titolo già presente in lista.',
+      ERR_CSV_EMPTY: 'Nessun titolo valido nel CSV.',
+      ERR_UNKNOWN: 'Errore imprevisto, riprova.',
+    },
   },
   en: {
     title: 'RandomTime',
@@ -71,6 +89,7 @@ export const translations = {
       csvTitle: '📄 From CSV file',
       csvHint: 'CSV must have header:',
       csvBtn: '📂 Load CSV',
+      csvImported: 'titles imported!',
     },
     list: {
       titlePlaceholder: 'Title...',
@@ -93,6 +112,7 @@ export const translations = {
       total: 'Total',
       toWatch: 'To watch',
       seen: 'Watched',
+      added: 'added!',
     },
     random: {
       allTypes: '🎬📺 Films & Series',
@@ -110,5 +130,21 @@ export const translations = {
       retry: 'Try again',
     },
     coffee: 'Is it useful? Buy me a coffee ☕',
+    errors: {
+      ERR_EMPTY_INPUT: 'No image uploaded.',
+      ERR_INVALID_FILE: 'Unsupported format: use JPG, PNG, GIF or WebP.',
+      ERR_FILE_TOO_LARGE: 'File too large.',
+      ERR_INVALID_INPUT: 'Invalid request.',
+      ERR_RATE_LIMIT: 'Too many requests, slow down!',
+      ERR_DAILY_LIMIT: "You've reached the daily limit of free AI imports. Try again tomorrow!",
+      ERR_AI_BUSY: 'AI service overloaded, try again shortly.',
+      ERR_AI_FAILED: 'Extraction failed, please try again.',
+      ERR_NOT_FOUND: 'Resource not found.',
+      ERR_INTERNAL: 'Internal server error.',
+      ERR_NETWORK: 'Server unreachable, check your connection.',
+      ERR_DUPLICATE: 'Title already in the list.',
+      ERR_CSV_EMPTY: 'No valid titles in the CSV.',
+      ERR_UNKNOWN: 'Unexpected error, please try again.',
+    },
   }
 };

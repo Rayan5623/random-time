@@ -1,16 +1,30 @@
-# React + Vite
+# RandomTime — client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React + Vite di RandomTime: importa la watchlist (screenshot TvTime via AI o CSV), gestisci la lista e lascia che l'app scelga cosa guardare.
 
-Currently, two official plugins are available:
+## Architettura
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **La lista vive solo nel browser** (`localStorage`, chiave `randomtime.films`): nessun account, nessun database. Svuotare i dati del sito cancella la lista.
+- Il **server** (`../server`) è stateless e serve solo a `POST /api/extract`: inoltra lo screenshot a Claude e restituisce i titoli estratti. Gli errori arrivano come codici (`{ "error": "ERR_..." }`) tradotti in `src/i18n.js` → `errors`.
+- L'import CSV è elaborato interamente nel browser.
 
-## React Compiler
+## Sviluppo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run lint
+npm run build
+```
 
-## Expanding the ESLint configuration
+## Configurazione
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `VITE_API_URL`: URL del server.
+  - Sviluppo: `.env.local` (non versionato), es. `VITE_API_URL=http://localhost:3001`
+  - Produzione: `.env.production`
+
+Server (`../server/.env`): `ANTHROPIC_API_KEY`, `CLIENT_URL` (origine CORS consentita), opzionale `EXTRACT_DAILY_LIMIT` (estrazioni AI per IP al giorno, default 5).
+
+## Import CSV
+
+Header obbligatorio `title,genre,type` (`type` = `film` | `serie`), max 1 MB / 500 righe. I campi con virgole vanno tra virgolette: `"Crouching Tiger, Hidden Dragon",Azione,film`.

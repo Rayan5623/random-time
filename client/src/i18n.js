@@ -39,6 +39,8 @@ export const translations = {
       toWatch: 'Da vedere',
       seen: 'Visti',
       added: 'aggiunto!',
+      exportBtn: '⬇️ Esporta CSV',
+      exportHint: 'Scarica la lista come backup: si può reimportare dalla scheda Importa.',
     },
     random: {
       allTypes: '🎬📺 Film e Serie',
@@ -113,6 +115,8 @@ export const translations = {
       toWatch: 'To watch',
       seen: 'Watched',
       added: 'added!',
+      exportBtn: '⬇️ Export CSV',
+      exportHint: 'Download the list as a backup: it can be re-imported from the Import tab.',
     },
     random: {
       allTypes: '🎬📺 Films & Series',

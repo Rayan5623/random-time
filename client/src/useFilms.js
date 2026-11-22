@@ -6,9 +6,12 @@ const MAX_FIELD_LENGTH = 200;
 
 const titleKey = (title) => title.trim().toLowerCase();
 
+// spazi multipli e a capo diventano un solo spazio (un titolo è sempre su una riga, anche nel CSV)
+const clean = (s) => s.replace(/\s+/g, ' ').trim().slice(0, MAX_FIELD_LENGTH);
+
 const normalize = (f) => ({
-  title: f.title.trim().slice(0, MAX_FIELD_LENGTH),
-  genre: typeof f.genre === 'string' ? f.genre.trim().slice(0, MAX_FIELD_LENGTH) : '',
+  title: clean(f.title),
+  genre: typeof f.genre === 'string' ? clean(f.genre) : '',
   type: f.type === 'serie' ? 'serie' : 'film',
 });
 
@@ -56,7 +59,7 @@ export function useFilms() {
       const k = titleKey(film.title);
       if (seen.has(k)) continue;
       seen.add(k);
-      added.push({ ...film, id: nextId++, watched: false, created_at: now });
+      added.push({ ...film, id: nextId++, watched: item.watched === true, created_at: now });
     }
     if (added.length) setFilms([...films, ...added]);
     return added.length;

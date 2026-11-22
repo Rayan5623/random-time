@@ -27,4 +27,4 @@ Server (`../server/.env`): `ANTHROPIC_API_KEY`, `CLIENT_URL` (origine CORS conse
 
 ## Import CSV
 
-Header obbligatorio `title,genre,type` (`type` = `film` | `serie`), max 1 MB / 500 righe. I campi con virgole vanno tra virgolette: `"Crouching Tiger, Hidden Dragon",Azione,film`.
+Header obbligatorio `title,genre,type` (`type` = `film` | `serie`), colonna `watched` (0/1) facoltativa; max 2 MB / 5000 righe. Il pulsante **Esporta CSV** nella scheda Lista scarica la lista nello stesso formato, quindi il file si può reimportare (backup o passaggio a un altro browser). I campi con virgole vanno tra virgolette: `"Crouching Tiger, Hidden Dragon",Azione,film`.

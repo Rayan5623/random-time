@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../LangContext';
+import { filmsToCSV, downloadCSV } from '../csv';
 
 export default function ListTab({ films, add, toggle, remove }) {
   const { t } = useLang();
@@ -29,6 +30,12 @@ export default function ListTab({ films, add, toggle, remove }) {
     }
     setTitle(''); setGenre('');
     showFeedback(`"${title.trim()}" ${t.list.added}`, true);
+  };
+
+  // esporta l'intera lista (non solo i titoli filtrati): serve anche come backup
+  const handleExport = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCSV(filmsToCSV(films), `randomtime-${date}.csv`);
   };
 
   const sorted = [...films].sort((a, b) => {
@@ -68,6 +75,14 @@ export default function ListTab({ films, add, toggle, remove }) {
             <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Export / backup */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8, marginBottom: 16 }}>
+        <button className="ghost" onClick={handleExport} disabled={!total}
+          title={t.list.exportHint} style={{ padding: '6px 12px', fontSize: 13 }}>
+          {t.list.exportBtn}
+        </button>
       </div>
 
       {/* Aggiunta manuale */}

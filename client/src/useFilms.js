@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 // La lista vive solo nel browser dell'utente: nessun dato viene salvato sul server.
-const STORAGE_KEY = 'randomtime.films';
+export const STORAGE_KEY = 'randomtime.films';
 const MAX_FIELD_LENGTH = 200;
 
 const titleKey = (title) => title.trim().toLowerCase();
@@ -17,10 +17,10 @@ const normalize = (f) => ({
 
 const isValidItem = (f) => f && typeof f.title === 'string' && f.title.trim();
 
-// Legge e valida i dati salvati: localStorage può contenere dati corrotti o modificati a mano
-function load() {
+// Valida i dati salvati: localStorage può contenere dati corrotti o modificati a mano
+export function parseStored(raw) {
   try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const data = JSON.parse(raw);
     if (!Array.isArray(data)) return [];
     return data
       .filter(f => isValidItem(f) && Number.isInteger(f.id))
@@ -35,32 +35,53 @@ function load() {
   }
 }
 
+// Restituisce i titoli di `items` non ancora presenti in `films` (confronto senza
+// maiuscole/spazi, anche tra gli item stessi), già normalizzati e con id progressivi.
+export function newFilms(films, items, now = new Date().toISOString()) {
+  const seen = new Set(films.map(f => titleKey(f.title)));
+  let nextId = films.reduce((max, f) => Math.max(max, f.id), 0) + 1;
+  const added = [];
+  for (const item of items) {
+    if (!isValidItem(item)) continue;
+    const film = normalize(item);
+    const k = titleKey(film.title);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    added.push({ ...film, id: nextId++, watched: item.watched === true, created_at: now });
+  }
+  return added;
+}
+
+const load = () => parseStored(localStorage.getItem(STORAGE_KEY));
+
 export function useFilms() {
   const [films, setFilms] = useState(load);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(films));
+      const json = JSON.stringify(films);
+      // scrive solo se cambia: evita di rimbalzare all'infinito gli eventi tra schede
+      if (localStorage.getItem(STORAGE_KEY) !== json) localStorage.setItem(STORAGE_KEY, json);
     } catch (err) {
       console.warn('Impossibile salvare la lista nel browser:', err);
     }
   }, [films]);
 
-  // Aggiunge i titoli non ancora presenti (confronto senza maiuscole/spazi).
+  // Un'altra scheda ha modificato la lista: si riparte dalla versione salvata,
+  // così le due schede non si sovrascrivono a vicenda.
+  // key === null significa localStorage.clear()
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.storageArea !== localStorage) return;
+      if (e.key === STORAGE_KEY || e.key === null) setFilms(load());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   // Restituisce quanti titoli sono stati effettivamente aggiunti.
   const addMany = (items) => {
-    const seen = new Set(films.map(f => titleKey(f.title)));
-    let nextId = films.reduce((max, f) => Math.max(max, f.id), 0) + 1;
-    const now = new Date().toISOString();
-    const added = [];
-    for (const item of items) {
-      if (!isValidItem(item)) continue;
-      const film = normalize(item);
-      const k = titleKey(film.title);
-      if (seen.has(k)) continue;
-      seen.add(k);
-      added.push({ ...film, id: nextId++, watched: item.watched === true, created_at: now });
-    }
+    const added = newFilms(films, items);
     if (added.length) setFilms([...films, ...added]);
     return added.length;
   };

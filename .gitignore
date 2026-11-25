@@ -1,6 +1,9 @@
 server/.env
-server/films.db
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.db-journal
 **/node_modules
 client/dist
 *.log
-EOF

@@ -1,31 +1,16 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useLang } from './LangContext';
+import { useFilms } from './useFilms';
 import ImportTab from './components/ImportTab';
 import ListTab from './components/ListTab';
 import RandomTab from './components/RandomTab';
 import './index.css';
 
-const API = import.meta.env.VITE_API_URL;
-
 export default function App() {
   const { lang, t, toggleLang } = useLang();
   const [tab, setTab] = useState(0);
-  const [films, setFilms] = useState([]);
+  const { films, add, addMany, toggle, remove } = useFilms();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') !== 'light');
-  const [serverError, setServerError] = useState(false);
-
-  const loadFilms = async () => {
-    try {
-      const res = await axios.get(`${API}/api/films`);
-      setFilms(res.data);
-      setServerError(false);
-    } catch (err) {
-      setServerError(true);
-    }
-  };
-
-  useEffect(() => { loadFilms(); }, []);
 
   useEffect(() => {
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
@@ -60,17 +45,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Server error */}
-      {serverError && (
-        <div style={{ background: 'var(--danger)', color: 'white',
-          borderRadius: 'var(--radius)', padding: '10px 16px', marginBottom: 16, fontSize: 13 }}>
-          ⚠️ Server non raggiungibile.
-          <span onClick={loadFilms} style={{ marginLeft: 8, cursor: 'pointer', textDecoration: 'underline' }}>
-            Riprova
-          </span>
-        </div>
-      )}
-
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 28,
         background: 'var(--surface)', borderRadius: 'var(--radius)', padding: 4 }}>
@@ -86,9 +60,9 @@ export default function App() {
         ))}
       </div>
 
-      {tab === 0 && <ImportTab api={API} onImport={(f) => { setFilms(f); setTab(1); }} />}
-      {tab === 1 && <ListTab api={API} films={films} onUpdate={setFilms} />}
-      {tab === 2 && <RandomTab films={films} onUpdate={setFilms} />}
+      {tab === 0 && <ImportTab addMany={addMany} onImported={() => setTab(1)} />}
+      {tab === 1 && <ListTab films={films} add={add} toggle={toggle} remove={remove} />}
+      {tab === 2 && <RandomTab films={films} />}
 
       {/* BuyMeACoffee */}
       <div style={{ textAlign: 'center', marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--border)' }}>

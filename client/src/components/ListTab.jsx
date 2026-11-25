@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../LangContext';
+import { filmsToCSV, downloadCSV } from '../csv';
 
-export default function ListTab({ api, films, onUpdate }) {
+export default function ListTab({ films, add, toggle, remove }) {
   const { t } = useLang();
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('');
@@ -11,30 +11,31 @@ export default function ListTab({ api, films, onUpdate }) {
   const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sort, setSort] = useState('newest');
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState(null); // { msg, ok }
+  const feedbackTimer = useRef(null);
 
-  const handleAdd = async () => {
+  useEffect(() => () => clearTimeout(feedbackTimer.current), []);
+
+  const showFeedback = (msg, ok) => {
+    clearTimeout(feedbackTimer.current);
+    setFeedback({ msg, ok });
+    feedbackTimer.current = setTimeout(() => setFeedback(null), 2500);
+  };
+
+  const handleAdd = () => {
     if (!title.trim()) return;
-    try {
-      const res = await axios.post(`${api}/api/films`, { title: title.trim(), genre, type });
-      onUpdate(res.data);
-      setTitle(''); setGenre('');
-      setFeedback(`"${title.trim()}" aggiunto!`);
-      setTimeout(() => setFeedback(''), 2500);
-    } catch (err) {
-      setFeedback(err.response?.data?.error || 'Errore');
-      setTimeout(() => setFeedback(''), 2500);
+    if (!add({ title, genre, type })) {
+      showFeedback(t.errors.ERR_DUPLICATE, false);
+      return;
     }
+    setTitle(''); setGenre('');
+    showFeedback(`"${title.trim()}" ${t.list.added}`, true);
   };
 
-  const handleToggle = async (id) => {
-    const res = await axios.patch(`${api}/api/films/${id}/toggle`);
-    onUpdate(res.data);
-  };
-
-  const handleRemove = async (id) => {
-    const res = await axios.delete(`${api}/api/films/${id}`);
-    onUpdate(res.data);
+  // esporta l'intera lista (non solo i titoli filtrati): serve anche come backup
+  const handleExport = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCSV(filmsToCSV(films), `randomtime-${date}.csv`);
   };
 
   const sorted = [...films].sort((a, b) => {
@@ -76,6 +77,14 @@ export default function ListTab({ api, films, onUpdate }) {
         ))}
       </div>
 
+      {/* Export / backup */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8, marginBottom: 16 }}>
+        <button className="ghost" onClick={handleExport} disabled={!total}
+          title={t.list.exportHint} style={{ padding: '6px 12px', fontSize: 13 }}>
+          {t.list.exportBtn}
+        </button>
+      </div>
+
       {/* Aggiunta manuale */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         <input style={{ flex: 1, minWidth: 140 }} placeholder={t.list.titlePlaceholder}
@@ -92,8 +101,8 @@ export default function ListTab({ api, films, onUpdate }) {
 
       {/* Feedback */}
       {feedback && (
-        <div style={{ fontSize: 13, color: 'var(--success)', marginBottom: 8 }}>
-          ✓ {feedback}
+        <div style={{ fontSize: 13, color: feedback.ok ? 'var(--success)' : 'var(--danger)', marginBottom: 8 }}>
+          {feedback.ok ? '✓' : '⚠️'} {feedback.msg}
         </div>
       )}
 
@@ -142,12 +151,12 @@ export default function ListTab({ api, films, onUpdate }) {
               </div>
               {f.genre && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{f.genre}</div>}
             </div>
-            <button onClick={() => handleToggle(f.id)}
+            <button onClick={() => toggle(f.id)}
               style={{ background: f.watched ? 'var(--surface2)' : 'var(--success)',
                 color: f.watched ? 'var(--muted)' : '#0f0f13', padding: '6px 12px', fontSize: 13 }}>
               {f.watched ? t.list.rewatch_btn : t.list.watched_btn}
             </button>
-            <button onClick={() => handleRemove(f.id)}
+            <button onClick={() => remove(f.id)}
               className="danger" style={{ padding: '6px 10px' }}>✕</button>
           </div>
         ))}

@@ -18,4 +18,5 @@ export function LangProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook legato al provider, va tenuto nello stesso file
 export const useLang = () => useContext(LangContext);

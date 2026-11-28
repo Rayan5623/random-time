@@ -35,7 +35,7 @@ export default function ListTab({ films, add, toggle, remove }) {
   // esporta l'intera lista (non solo i titoli filtrati): serve anche come backup
   const handleExport = () => {
     const date = new Date().toISOString().slice(0, 10);
-    downloadCSV(filmsToCSV(films), `randomtime-${date}.csv`);
+    downloadCSV(filmsToCSV(films), `sortapp-${date}.csv`);
   };
 
   const sorted = [...films].sort((a, b) => {

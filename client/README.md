@@ -1,10 +1,10 @@
-# RandomTime — client
+# SortApp — client
 
-Frontend React + Vite di RandomTime: importa la watchlist (screenshot TvTime via AI o CSV), gestisci la lista e lascia che l'app scelga cosa guardare.
+Frontend React + Vite di SortApp: importa la watchlist (screenshot TvTime via AI o CSV), gestisci la lista e lascia che l'app scelga cosa guardare.
 
 ## Architettura
 
-- **La lista vive solo nel browser** (`localStorage`, chiave `randomtime.films`): nessun account, nessun database. Svuotare i dati del sito cancella la lista.
+- **La lista vive solo nel browser** (`localStorage`, chiave `sortapp.films`; la vecchia chiave `randomtime.films` viene migrata automaticamente al primo avvio): nessun account, nessun database. Svuotare i dati del sito cancella la lista.
 - Il **server** (`../server`) è stateless e serve solo a `POST /api/extract`: inoltra lo screenshot a Claude e restituisce i titoli estratti. Gli errori arrivano come codici (`{ "error": "ERR_..." }`) tradotti in `src/i18n.js` → `errors`.
 - L'import CSV è elaborato interamente nel browser.
 

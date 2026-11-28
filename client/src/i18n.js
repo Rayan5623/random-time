@@ -1,6 +1,6 @@
 export const translations = {
   it: {
-    title: 'RandomTime',
+    title: 'SortApp',
     subtitle: "L'amico che non ti dice mai 'boh, scegli tu'.",
     tabs: ['📥 Importa', '🎬 Lista', '🎲 Scegli'],
     import: {
@@ -76,7 +76,7 @@ export const translations = {
     },
   },
   en: {
-    title: 'RandomTime',
+    title: 'SortApp',
     subtitle: "The friend who never says 'I don't know, you pick'.",
     tabs: ['📥 Import', '🎬 List', '🎲 Pick'],
     import: {

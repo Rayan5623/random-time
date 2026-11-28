@@ -1,7 +1,27 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { parseStored, newFilms, useFilms, STORAGE_KEY } from './useFilms';
+import { parseStored, newFilms, useFilms, STORAGE_KEY, LEGACY_STORAGE_KEY } from './useFilms';
+
+describe('migrazione dalla vecchia chiave', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('sposta la lista da randomtime.films a sortapp.films', () => {
+    const old = JSON.stringify([{ id: 1, title: 'Dune', watched: true }]);
+    localStorage.setItem(LEGACY_STORAGE_KEY, old);
+    const { result } = renderHook(() => useFilms());
+    expect(result.current.films.map(f => [f.title, f.watched])).toEqual([['Dune', true]]);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY))[0].title).toBe('Dune');
+    expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
+  });
+
+  it('non sovrascrive una lista già presente sotto la nuova chiave', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([{ id: 1, title: 'Nuova' }]));
+    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify([{ id: 1, title: 'Vecchia' }]));
+    const { result } = renderHook(() => useFilms());
+    expect(result.current.films.map(f => f.title)).toEqual(['Nuova']);
+  });
+});
 
 describe('parseStored', () => {
   it('restituisce [] per dati assenti, corrotti o non array', () => {

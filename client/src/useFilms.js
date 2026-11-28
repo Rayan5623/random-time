@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
 // La lista vive solo nel browser dell'utente: nessun dato viene salvato sul server.
-export const STORAGE_KEY = 'randomtime.films';
+export const STORAGE_KEY = 'sortapp.films';
+// chiave usata quando l'app si chiamava RandomTime: la lista va spostata, non persa
+export const LEGACY_STORAGE_KEY = 'randomtime.films';
 const MAX_FIELD_LENGTH = 200;
 
 const titleKey = (title) => title.trim().toLowerCase();
@@ -54,8 +56,25 @@ export function newFilms(films, items, now = new Date().toISOString()) {
 
 const load = () => parseStored(localStorage.getItem(STORAGE_KEY));
 
+// Sposta la lista dalla vecchia chiave alla nuova, solo se la nuova è ancora vuota.
+// La vecchia chiave viene rimossa solo dopo che la copia è riuscita.
+export function migrateLegacyStorage() {
+  try {
+    if (localStorage.getItem(STORAGE_KEY) !== null) return;
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy === null) return;
+    localStorage.setItem(STORAGE_KEY, legacy);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch (err) {
+    console.warn('Impossibile migrare la lista salvata:', err);
+  }
+}
+
 export function useFilms() {
-  const [films, setFilms] = useState(load);
+  const [films, setFilms] = useState(() => {
+    migrateLegacyStorage();
+    return load();
+  });
 
   useEffect(() => {
     try {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../LangContext';
 import { filmsToCSV, downloadCSV } from '../csv';
+import { useBackupReminder } from '../backup';
 
 export default function ListTab({ films, add, toggle, remove }) {
   const { t } = useLang();
@@ -13,6 +14,7 @@ export default function ListTab({ films, add, toggle, remove }) {
   const [sort, setSort] = useState('newest');
   const [feedback, setFeedback] = useState(null); // { msg, ok }
   const feedbackTimer = useRef(null);
+  const backup = useBackupReminder(films.length);
 
   useEffect(() => () => clearTimeout(feedbackTimer.current), []);
 
@@ -36,6 +38,7 @@ export default function ListTab({ films, add, toggle, remove }) {
   const handleExport = () => {
     const date = new Date().toISOString().slice(0, 10);
     downloadCSV(filmsToCSV(films), `sortapp-${date}.csv`);
+    backup.markExported();
   };
 
   const sorted = [...films].sort((a, b) => {
@@ -60,6 +63,23 @@ export default function ListTab({ films, add, toggle, remove }) {
 
   return (
     <div>
+      {/* Promemoria backup */}
+      {backup.show && (
+        <div role="status" style={{
+          display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap',
+          background: 'var(--surface)', border: '1px solid var(--accent2)',
+          borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: 20, fontSize: 13
+        }}>
+          <span style={{ flex: 1, minWidth: 200 }}>{t.list.backupReminder}</span>
+          <button onClick={handleExport} style={{ padding: '6px 12px', fontSize: 13 }}>
+            {t.list.backupNow}
+          </button>
+          <button className="ghost" onClick={backup.snooze} style={{ padding: '6px 12px', fontSize: 13 }}>
+            {t.list.backupLater}
+          </button>
+        </div>
+      )}
+
       {/* Contatore */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         {[

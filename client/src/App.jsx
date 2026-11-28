@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLang } from './LangContext';
 import { useFilms } from './useFilms';
+import { wakeServer } from './api';
 import ImportTab from './components/ImportTab';
 import ListTab from './components/ListTab';
 import RandomTab from './components/RandomTab';
@@ -11,6 +12,9 @@ export default function App() {
   const [tab, setTab] = useState(0);
   const { films, add, addMany, toggle, remove } = useFilms();
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') !== 'light');
+
+  // sveglia subito il server (piano gratuito Render): l'estrazione AI sarà più rapida
+  useEffect(() => { wakeServer(); }, []);
 
   useEffect(() => {
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');

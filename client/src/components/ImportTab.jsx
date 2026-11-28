@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../LangContext';
-import { extractTitles, ALLOWED_IMAGE_TYPES } from '../api';
+import { extractTitles, wakeServer, isServerAwake, ALLOWED_IMAGE_TYPES } from '../api';
 import { parseFilmsCSV, MAX_CSV_BYTES } from '../csv';
 
 export default function ImportTab({ addMany, onImported }) {
@@ -8,7 +8,8 @@ export default function ImportTab({ addMany, onImported }) {
   const errorText = (err) => t.errors[err?.code] || t.errors.ERR_UNKNOWN;
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState(null); // null | 'waking' | 'extracting'
+  const loading = phase !== null;
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState([]);
   const [error, setError] = useState('');
@@ -28,14 +29,21 @@ export default function ImportTab({ addMany, onImported }) {
   };
 
   const handleExtract = async () => {
-    setLoading(true); setError('');
+    setError('');
     try {
+      // server addormentato: lo si aspetta mostrando un messaggio dedicato.
+      // Se non risponde si tenta comunque l'estrazione, che darà l'errore giusto.
+      if (!isServerAwake()) {
+        setPhase('waking');
+        await wakeServer();
+      }
+      setPhase('extracting');
       const films = await extractTitles(file);
       setResults(films);
       setSelected(films.map((_, i) => i));
     } catch (err) {
       setError(errorText(err));
-    } finally { setLoading(false); }
+    } finally { setPhase(null); }
   };
 
   const handleImport = () => {
@@ -88,8 +96,12 @@ export default function ImportTab({ addMany, onImported }) {
 
         {file && !results.length && (
           <button onClick={handleExtract} disabled={loading} style={{ marginTop: 12, width: '100%' }}>
-            {loading ? t.import.extracting : t.import.extractBtn}
+            {phase === 'waking' ? t.import.waking : loading ? t.import.extracting : t.import.extractBtn}
           </button>
+        )}
+
+        {phase === 'waking' && (
+          <p style={{ color: 'var(--muted)', marginTop: 8, fontSize: 13 }}>{t.import.wakingHint}</p>
         )}
 
         {error && <p style={{ color: 'var(--danger)', marginTop: 8, fontSize: 13 }}>{error}</p>}
